@@ -1,6 +1,6 @@
 /* 
  * Week 3
- * author: Katheirne Oh
+ * author: Katherine Oh
  * */
 package demos;
 
