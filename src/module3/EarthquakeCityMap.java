@@ -16,6 +16,7 @@ import de.fhpotsdam.unfolding.data.PointFeature;
 import de.fhpotsdam.unfolding.marker.SimplePointMarker;
 import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
+import de.fhpotsdam.unfolding.providers.Microsoft;
 import de.fhpotsdam.unfolding.utils.MapUtils;
 
 //Parsing library
@@ -24,8 +25,8 @@ import parsing.ParseFeed;
 /** EarthquakeCityMap
  * An application with an interactive map displaying earthquake data.
  * Author: UC San Diego Intermediate Software Development MOOC team
- * @author Your name here
- * Date: July 17, 2015
+ * @author Katherine Oh
+ * Date: February 28, 2018
  * */
 public class EarthquakeCityMap extends PApplet {
 
@@ -46,7 +47,7 @@ public class EarthquakeCityMap extends PApplet {
 	// The map
 	private UnfoldingMap map;
 	
-	//feed with magnitude 2.5+ Earthquakes
+	//feed with magnitude 2.5+ Earthquakes - RSS FEED
 	private String earthquakesURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
 
 	
@@ -58,46 +59,44 @@ public class EarthquakeCityMap extends PApplet {
 		    earthquakesURL = "2.5_week.atom"; 	// Same feed, saved Aug 7, 2015, for working offline
 		}
 		else {
-			map = new UnfoldingMap(this, 200, 50, 700, 500, new Google.GoogleMapProvider());
+			// replaced new Google.GoogleMapProvider() with new Microsoft.HybridProvider() when status code 403
+			map = new UnfoldingMap(this, 200, 50, 700, 500, new Microsoft.HybridProvider());
 			// IF YOU WANT TO TEST WITH A LOCAL FILE, uncomment the next line
 			//earthquakesURL = "2.5_week.atom";
 		}
 		
 	    map.zoomToLevel(2);
+	    // makes map interactive
 	    MapUtils.createDefaultEventDispatcher(this, map);	
 			
 	    // The List you will populate with new SimplePointMarkers
 	    List<Marker> markers = new ArrayList<Marker>();
 
 	    //Use provided parser to collect properties for each earthquake
-	    //PointFeatures have a getLocation method
+	    // PointFeatures have a getLocation method
+	    // use parseEarthquake() method from ParseFeed class 
 	    List<PointFeature> earthquakes = ParseFeed.parseEarthquake(this, earthquakesURL);
 	    
-	    //TODO (Step 3): Add a loop here that calls createMarker (see below) 
-	    // to create a new SimplePointMarker for each PointFeature in 
-	    // earthquakes.  Then add each new SimplePointMarker to the 
-	    // List markers (so that it will be added to the map in the line below)
-	    
+	    //**for each PointFeature eq in earthquakes List** 
+	    	// calls CreateMaker() helper method passing in each eq in earthquakes List 
+	        // creates a new SimplePointMarker for each PointFeature in earthquakes List
+	        // adds each new SimplePointMarker to the List markers 
+	    for (PointFeature eq : earthquakes) {
+	    	// call createMarker
+	        markers.add(createMarker(eq));
+	    }
 	    
 	    // Add the markers to the map so that they are displayed
 	    map.addMarkers(markers);
 	}
 		
-	/* createMarker: A suggested helper method that takes in an earthquake 
-	 * feature and returns a SimplePointMarker for that earthquake
-	 * 
-	 * In step 3 You can use this method as-is.  Call it from a loop in the 
-	 * setp method.  
-	 * 
-	 * TODO (Step 4): Add code to this method so that it adds the proper 
-	 * styling to each marker based on the magnitude of the earthquake.  
-	*/
+	/* helper method createMarker() that takes in an earthquake 
+	 * feature and returns a SimplePointMarker for that earthquake */
+	
 	private SimplePointMarker createMarker(PointFeature feature)
 	{  
-		// To print all of the features in a PointFeature (so you can see what they are)
-		// uncomment the line below.  Note this will only print if you call createMarker 
-		// from setup
-		//System.out.println(feature.getProperties());
+		// Prints all of the features in a PointFeature in console
+		System.out.println(feature.getProperties());
 		
 		// Create a new SimplePointMarker at the location given by the PointFeature
 		SimplePointMarker marker = new SimplePointMarker(feature.getLocation());
@@ -105,19 +104,29 @@ public class EarthquakeCityMap extends PApplet {
 		Object magObj = feature.getProperty("magnitude");
 		float mag = Float.parseFloat(magObj.toString());
 		
-		// Here is an example of how to use Processing's color method to generate 
-	    // an int that represents the color yellow.  
-	    int yellow = color(255, 255, 0);
-		
-		// TODO (Step 4): Add code below to style the marker's size and color 
-	    // according to the magnitude of the earthquake.  
-	    // Don't forget about the constants THRESHOLD_MODERATE and 
-	    // THRESHOLD_LIGHT, which are declared above.
-	    // Rather than comparing the magnitude to a number directly, compare 
-	    // the magnitude to these variables (and change their value in the code 
-	    // above if you want to change what you mean by "moderate" and "light")
+		// style markers (color and radius size) according to magnitude size 
+		int blue = color(66, 92, 244);
+	    int yellow = color(244, 235, 66);
+	    int red = color(244, 66, 92);
+
+	    int small = 4;
+	    int medium = 8;
+	    int large = 12;
 	    
-	    
+	    // earthquakes less than magnitude 4
+	   	if ((float) mag < THRESHOLD_LIGHT) {
+	   		marker.setColor(blue);
+	   		marker.setRadius(small);
+	   	} else if ((float) mag >= THRESHOLD_LIGHT && (float) mag < THRESHOLD_MODERATE ) {
+	   		// earthquakes between 4.0-4.9
+    		marker.setColor(yellow);
+    		marker.setRadius(medium);
+	    } else if ((float) mag >= THRESHOLD_MODERATE) {
+	   		// earthquakes greater than or equal to 5.0
+	   		marker.setColor(red);
+	   		marker.setRadius(large);
+	   	} 
+
 	    // Finally return the marker
 	    return marker;
 	}
