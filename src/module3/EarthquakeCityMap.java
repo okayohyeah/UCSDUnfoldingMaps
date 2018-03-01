@@ -8,7 +8,7 @@ import java.util.List;
 
 //Processing library
 import processing.core.PApplet;
-
+import processing.core.PFont;
 //Unfolding libraries
 import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.marker.Marker;
@@ -30,7 +30,7 @@ import parsing.ParseFeed;
  * */
 public class EarthquakeCityMap extends PApplet {
 
-	// You can ignore this.  It's to keep eclipse from generating a warning.
+	// keeps eclipse from generating a warning.
 	private static final long serialVersionUID = 1L;
 
 	// IF YOU ARE WORKING OFFLINE, change the value of this variable to true
@@ -47,16 +47,16 @@ public class EarthquakeCityMap extends PApplet {
 	// The map
 	private UnfoldingMap map;
 	
-	//feed with magnitude 2.5+ Earthquakes - RSS FEED
-	private String earthquakesURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
-
+	//feed with magnitude 2.5+ Earthquakes - RSS FEED: past 30 days
+	private String earthquakesURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.atom";
 	
 	public void setup() {
+	
 		size(950, 600, OPENGL);
 
 		if (offline) {
 		    map = new UnfoldingMap(this, 200, 50, 700, 500, new MBTilesMapProvider(mbTilesString));
-		    earthquakesURL = "2.5_week.atom"; 	// Same feed, saved Aug 7, 2015, for working offline
+		    earthquakesURL = "2.5_month.atom"; 	// Same feed, saved Aug 7, 2015, for working offline
 		}
 		else {
 			// replaced new Google.GoogleMapProvider() with new Microsoft.HybridProvider() when status code 403
@@ -90,13 +90,11 @@ public class EarthquakeCityMap extends PApplet {
 	    map.addMarkers(markers);
 	}
 		
-	/* helper method createMarker() that takes in an earthquake 
-	 * feature and returns a SimplePointMarker for that earthquake */
-	
-	private SimplePointMarker createMarker(PointFeature feature)
-	{  
-		// Prints all of the features in a PointFeature in console
-		System.out.println(feature.getProperties());
+	/* HELPER METHOD createMarker() that takes in an earthquake 
+	 * Feature and returns a SimplePointMarker for that earthquake */
+	private SimplePointMarker createMarker(PointFeature feature) {  
+		// all of the Features in a PointFeature
+		// System.out.println(feature.getProperties());
 		
 		// Create a new SimplePointMarker at the location given by the PointFeature
 		SimplePointMarker marker = new SimplePointMarker(feature.getLocation());
@@ -104,14 +102,14 @@ public class EarthquakeCityMap extends PApplet {
 		Object magObj = feature.getProperty("magnitude");
 		float mag = Float.parseFloat(magObj.toString());
 		
-		// style markers (color and radius size) according to magnitude size 
+		// style markers by color according to magnitude size 
 		int blue = color(66, 92, 244);
-	    int yellow = color(244, 235, 66);
-	    int red = color(244, 66, 92);
-
-	    int small = 4;
-	    int medium = 8;
-	    int large = 12;
+		int yellow = color(244, 235, 66);
+		int red = color(244, 66, 92);
+		// style markers by radius size according to magnitude size 
+		int small = 6;
+		int medium = 12;
+		int large = 18;
 	    
 	    // earthquakes less than magnitude 4
 	   	if ((float) mag < THRESHOLD_LIGHT) {
@@ -127,22 +125,58 @@ public class EarthquakeCityMap extends PApplet {
 	   		marker.setRadius(large);
 	   	} 
 
-	    // Finally return the marker
+	    // Return the marker
 	    return marker;
 	}
 	
 	public void draw() {
-	    background(10);
+	    background(92,134,141); // teal
 	    map.draw();
 	    addKey();
+	    addTitle();
 	}
 
-
-	// helper method to draw key in GUI
-	// TODO: Implement this method to draw the key
-	private void addKey() 
-	{	
-		// Remember you can use Processing's graphics methods here
+	// HELPER METHOD addKey() to draw key in GUI
+	private void addKey() {	
+		// Rectangle
+		fill(255, 255, 255); // rectangle white
+		stroke(200, 214, 202); // lt grey teal
+		strokeWeight(3);
+		rect(25, 50, 150, 250, 5);
+		
+		// Heading
+		fill(0, 0, 0); // text black
+		textSize(16);
+		textAlign(CENTER);
+		text("Earthquake Key", 100, 100); // align x where center of centered text would be
+		stroke(0, 0, 0);
+		strokeWeight(1);
+		line(40, 105, 160, 105);
+		
+		// Other text
+		fill(0, 0, 0); // text black
+		textSize(12);
+		textAlign(LEFT);
+		text("5.0+ Magnitude", 70, 150);
+		text("4.0+ Magnitude", 70, 200);
+		text("Below 4.0", 70, 250);
+		
+		// Symbols
+		fill(244, 66, 92); // red 
+		stroke(100, 100, 100); // outline color med grey
+		strokeWeight(1);
+		ellipse(50, 145 , 18, 18);
+		fill(244, 235, 66); // yellow
+		ellipse(50, 195 , 12, 12);
+		fill(66, 92, 244); // blue
+		ellipse(50, 245 , 6, 6);		
+	}
 	
+	// HELPER METHOD addTitle() to add Map Title in GUI
+	private void addTitle() {	
+		fill(255, 255, 255); // text white
+		textSize(24);
+		textAlign(CENTER);
+		text("Earthquakes of Magnitude 2.5+ in Past 30 Days", 475, 35); // align x where center of centered text would be
 	}
 }
